@@ -1,0 +1,107 @@
+from fastapi import APIRouter, HTTPException
+from typing import List
+import logging
+from eth_account.messages import encode_defunct
+from web3 import Web3
+from ..models.signature_log import SignatureLog
+from datetime import datetime
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+# 初始化 Web3
+w3 = Web3()
+
+# 内存存储（生产环境应使用数据库）
+signature_logs: List[SignatureLog] = []
+
+@router.post("/sign/log", response_model=dict)
+async def log_signature(sign_data: SignatureLog):
+    try:
+        logger.info(f"Received signature log: {sign_data}")
+        
+        # 验证签名
+        message = encode_defunct(text=sign_data.message)
+        recovered_address = w3.eth.account.recover_message(
+            message,
+            signature=sign_data.signature
+        )
+        
+        # 检查地址匹配
+        if recovered_address.lower() != sign_data.address.lower():
+            logger.warning(f"Signature verification failed for address: {sign_data.address}")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid signature: recovered address does not match provided address"
+            )
+            
+        signature_logs.append(sign_data)
+        logger.info(f"Successfully logged signature for address: {sign_data.address}")
+        
+        return {
+            "status": "success",
+            "message": "Signature logged successfully",
+            "data": {
+                "address": sign_data.address,
+                "timestamp": sign_data.timestamp,
+                "verified": True
+            }
+        }
+    except ValueError as e:
+        logger.error(f"Signature validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid signature: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error logging signature: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/sign/logs", response_model=dict)
+async def get_signature_logs():
+    try:
+        return {
+            "status": "success",
+            "count": len(signature_logs),
+            "logs": signature_logs
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving signature logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/sign/logs/{address}", response_model=dict)
+async def get_wallet_signature_logs(address: str):
+    try:
+        wallet_logs = [
+            log for log in signature_logs 
+            if log.address.lower() == address.lower()
+        ]
+        return {
+            "status": "success",
+            "count": len(wallet_logs),
+            "logs": wallet_logs
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving wallet signature logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/sign/verify/{address}/{signature}", response_model=dict)
+async def verify_signature(address: str, signature: str, message: str):
+    try:
+        message_encoded = encode_defunct(text=message)
+        recovered_address = w3.eth.account.recover_message(
+            message_encoded,
+            signature=signature
+        )
+        
+        is_valid = recovered_address.lower() == address.lower()
+        
+        return {
+            "status": "success",
+            "verified": is_valid,
+            "recovered_address": recovered_address,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error verifying signature: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid signature: {str(e)}")
