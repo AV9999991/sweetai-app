@@ -1,0 +1,143 @@
+/* Base styles */
+:root {
+  --primary-color: #4CAF50;
+  --primary-hover: #45a049;
+  --error-color: #ff4444;
+  --success-color: #00C851;
+  --text-color: #333;
+  --bg-color: #f5f5f5;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg-color);
+}
+
+/* Container styles */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.app-main {
+  display: grid;
+  gap: 20px;
+}
+
+/* Component containers */
+.mint-button-container,
+.wallet-signer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Button styles */
+.mint-button,
+.sign-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.mint-button:hover,
+.sign-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.mint-button:disabled,
+.sign-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Message styles */
+.error-message {
+  color: var(--error-color);
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.success-message {
+  color: var(--success-color);
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Loading animation */
+.loading {
+  opacity: 0.7;
+  position: relative;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  border: 4px solid transparent;
+  border-top-color: white;
+  border-radius: 50%;
+  animation: loading-spin 1s ease infinite;
+}
+
+@keyframes loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Address display */
+.address-display {
+  font-family: monospace;
+  background: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px;
+  }
+  
+  .mint-button,
+  .sign-button {
+    min-width: 160px;
+    font-size: 14px;
+  }
+}
